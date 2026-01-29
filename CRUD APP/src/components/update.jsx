@@ -1,31 +1,39 @@
 import React from "react";
-import { useState, useEffect } from "react"; 
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from "react-router-dom";   
 import axios from "axios";  
 
 export default function Update(){
-    const id = useParams()
+    // FIX 1: Destructure id so it's a string, not an object
+    const { id } = useParams(); 
     const [users, setUsers] = useState([]);
     const navigate = useNavigate();
+
+    const [values, setValues] = useState({
+        name: '',
+        age: ''
+    });
 
     useEffect(() => {
         axios.get(`http://localhost:5000/users/${id}`)
             .then((res) => {
+                // To fill the inputs automatically, we set values
+                setValues({
+                    name: res.data.name || '',
+                    age: res.data.age || ''
+                });
                 setUsers(res.data);
             })
             .catch((err) => {
                 console.log(err);
             });
-    }, 
-    );
-    const user = users[0]
-    const [name, setName] = useState( user.name);
-    const [age, setAge] = useState(user.age);
+    }, [id]); // Added [id] to prevent infinite loops
+
     const HandleUpdate = (e) => {
         e.preventDefault();
-        axios.Update(`http://localhost:5000/update-user/${id}`, {
-            name,age
-}).then(() => {
+        // FIX 2: Send the 'values' state instead of an empty object
+        axios.put(`http://localhost:5000/update-user/${id}`, values)
+        .then(() => {
             alert("User Updated");
             navigate("/dashboard");
         }).catch((err) => {
@@ -33,16 +41,17 @@ export default function Update(){
         })
     }
 
-return(
-    <>
-    <form onSubmit={HandleUpdate}>
-        Name:
-        <input type="text" value={name} onChange={(e) => setName(e.target.value)}/><br/>
-        Age:
-        <input type="number" value={age} onChange={(e) => setAge(e.target.value)}/><br/>
-        <button type="submit">Update</button>
-    </form>
-    </>
-) 
-
+    return(
+        <>
+        <form onSubmit={HandleUpdate}>
+            Name:
+            {/* FIX 3: Wrapped spread operator in curly braces {} */}
+            <input type="text" value={values.name || ''} onChange={(e) => setValues({...values, name : e.target.value})}/><br/>
+            Age:
+            {/* FIX 3: Wrapped spread operator in curly braces {} */}
+            <input type="number" value={values.age || ''} onChange={(e) => setValues({...values, age:e.target.value})}/><br/>
+            <button type="submit">Update</button>
+        </form>
+        </>
+    ) 
 }

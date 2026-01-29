@@ -26,15 +26,12 @@ db.connect((err) => {
 
 // Create
 app.post('/register', (req, res) => {
-    const { name,age} = req.body;
-    const sql = 'INSERT INTO users (name, age) VALUES (?, ?)';
-    db.query(sql, [name, age], (err) => {
-        if (err) {
-            console.error('Error inserting user:', err);
-        }else{
-            res.send('User added successfully' );
-        }
-    });
+    const sql = "INSERT INTO users (name, age) VALUES (?, ?)";
+    const values = [req.body.name, req.body.age];
+db.query(sql, values, (err, result) => {
+    if (err) return res.json(err);
+    return res.json(result).send("User inserted");
+});
 });
 //select middleware
 
